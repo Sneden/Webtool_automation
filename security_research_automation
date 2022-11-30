@@ -1,0 +1,79 @@
+# -*- coding: utf-8 -*-
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoAlertPresentException
+import unittest, time, re
+
+class AppDynamicsJob(unittest.TestCase):
+    def setUp(self):
+        # AppDynamics will automatically override this web driver
+        # as documented in https://docs.appdynamics.com/display/PRO44/Write+Your+First+Script
+        self.driver = webdriver.Firefox()
+        self.driver.implicitly_wait(30)
+        self.base_url = "https://www.google.com/"
+        self.verificationErrors = []
+        self.accept_next_alert = True
+    
+    def test_app_dynamics_job(self):
+        driver = self.driver
+        # ERROR: Caught exception [ERROR: Unsupported command [loadVars | SCN1.csv | ]]
+        ex = "0"
+        R = "0"
+        report = "0"
+        impact = "0"
+        final = "0"
+        des = "0"
+        first = "0"
+        driver.get("https://exchange.xforce.ibmcloud.com/vulnerabilities/${CVE}")
+        ex = driver.find_element_by_xpath("//div[@id='instantresults']/div[3]/div[2]/div[2]/table/tbody/tr/td/span").text
+        R = driver.find_element_by_xpath("//div[@id='instantresults']/div[3]/div[2]/div[2]/table/tbody/tr[2]/td/span").text
+        report = driver.find_element_by_xpath("//div[@id='instantresults']/div[3]/div[2]/div[2]/table/tbody/tr[3]/td/span").text
+        impact = driver.find_element_by_xpath("//div[@id='instantresults']/div[3]/div/div[2]/div/div").text
+        des = driver.find_element_by_xpath("//div[@id='instantresults']/div[3]/div/div/p[2]").text
+        remedy = driver.find_element_by_xpath("//div[@id='instantresults']/div[3]/div/div[3]/p/p").text
+        driver.get("<tool website>/${CVE}/edit")
+        # ERROR: Caught exception [ERROR: Unsupported command [setText | name=vasDescription | ${des}]]
+        driver.find_element_by_xpath("//form[@id='scnform']/div[3]/div/span/span/span/ul/li/span").click()
+        driver.find_element_by_xpath("//form[@id='scnform']/div[3]/div/span/span/span/ul/li/input").click()
+        # ERROR: Caught exception [ERROR: Unsupported command [setText | xpath=//form[@id='scnform']/div[3]/div/span/span/span/ul/li/input | ${impact}]]
+        first = remedy
+        second = "Refer to Respective vendor Security Advisory for patch, upgrade or suggested workaround information. See references."
+        # ERROR: Caught exception [ERROR: Unsupported command [getEval | first + "\n" + "\n" + second | ]]
+        # ERROR: Caught exception [ERROR: Unsupported command [setText | name=remediation | ${final}]]
+        driver.find_element_by_xpath("//div[@id='headingOne']/h2/button").click()
+        # ERROR: Caught exception [ERROR: Unsupported command [break |  | ]]
+        driver.find_element_by_id("publishButton").click()
+        driver.find_element_by_xpath("//div[@id='exampleModalCenter']/div/div/div[3]/input").click()
+        # ERROR: Caught exception [ERROR: Unsupported command [endLoadVars |  | ]]
+    
+    def is_element_present(self, how, what):
+        try: self.driver.find_element(by=how, value=what)
+        except NoSuchElementException as e: return False
+        return True
+    
+    def is_alert_present(self):
+        try: self.driver.switch_to_alert()
+        except NoAlertPresentException as e: return False
+        return True
+    
+    def close_alert_and_get_its_text(self):
+        try:
+            alert = self.driver.switch_to_alert()
+            alert_text = alert.text
+            if self.accept_next_alert:
+                alert.accept()
+            else:
+                alert.dismiss()
+            return alert_text
+        finally: self.accept_next_alert = True
+    
+    def tearDown(self):
+        # To know more about the difference between verify and assert,
+        # visit https://www.seleniumhq.org/docs/06_test_design_considerations.jsp#validating-results
+        self.assertEqual([], self.verificationErrors)
+
+if __name__ == "__main__":
+    unittest.main()
